@@ -1,0 +1,108 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  gamified-backend
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Environment:
+      Variables:
+        # SYSTEM_WALLET_ADDRESS: 
+        # SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a # goerli
+        SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a # avax
+        # CHAIN_API_URL: https://eth-goerli.g.alchemy.com/v2/jVVK_c3FjZ18Z25TmYzHkokiyD1ngj38 # goerli
+        CHAIN_API_URL: https://api.avax-test.network/ext/bc/C/rpc # avax
+        # CHAIN_API_KEY: jVVK_c3FjZ18Z25TmYzHkokiyD1ngj38
+        S3_ENV_BUCKET: s3-test-env-bucket
+        # DYNAMODB_TABLE: !Ref GamifiedAirdrops
+
+Resources:
+  # This is a Lambda function config associated with the source code: get-all-airdrops.js
+  getAllAirdropsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-all-airdrops.getAllAirdropsHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GamifiedAirdrops
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref GamifiedAirdrops
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+
+  getAirdropFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-airdrop.getAirdropHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GamifiedAirdrops
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref GamifiedAirdrops
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: GET
+
+  createAirdrop:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/create-airdrop.createAirdropHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Timeout: 300
+      Description:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GamifiedAirdrops
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref GamifiedAirdrops
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /create-airdrop
+            Method: POST
+
+  GamifiedAirdrops:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
