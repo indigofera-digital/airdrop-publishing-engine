@@ -12,14 +12,13 @@ Globals:
   Function:
     Environment:
       Variables:
-        # SYSTEM_WALLET_ADDRESS: 
-        # SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a # goerli
-        SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a # avax
-        # CHAIN_API_URL: https://eth-goerli.g.alchemy.com/v2/jVVK_c3FjZ18Z25TmYzHkokiyD1ngj38 # goerli
-        CHAIN_API_URL: https://api.avax-test.network/ext/bc/C/rpc # avax
+        SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a
+        CHAIN_API_URL: https://api.avax-test.network/ext/bc/C/rpc
         # CHAIN_API_KEY: jVVK_c3FjZ18Z25TmYzHkokiyD1ngj38
         S3_ENV_BUCKET: s3-test-env-bucket
         # DYNAMODB_TABLE: !Ref GamifiedAirdrops
+        QUIZ_FACTORY_CONTRACT: "./contracts/QuizFactory.json"
+        QUIZ_FACTORY_ADDRESS: "0x11daa938674d063e3ff4727803cbbc303c74f658"
 
 Resources:
   # This is a Lambda function config associated with the source code: get-all-airdrops.js
@@ -76,8 +75,8 @@ Resources:
       Runtime: nodejs16.x
       Architectures:
         - x86_64
-      MemorySize: 512
-      Timeout: 300
+      MemorySize: 128
+      Timeout: 100
       Description:
       Policies:
         - DynamoDBCrudPolicy:
@@ -90,6 +89,29 @@ Resources:
           Type: Api
           Properties:
             Path: /create-airdrop
+            Method: POST
+
+  sendReward:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/send-reward.sendRewardHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GamifiedAirdrops
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref GamifiedAirdrops
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /send-reward
             Method: POST
 
   GamifiedAirdrops:

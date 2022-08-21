@@ -1,12 +1,4 @@
 const tableName = process.env.DYNAMODB_TABLE;
-const systemWalletAddress = process.env.SYSTEM_WALLET_ADDRESS;
-const systemWalletPrivate = process.env.SYSTEM_WALLET_PRIVATE;
-const chainApiUrl = process.env.CHAIN_API_URL;
-const chainApiKey = process.env.CHAIN_API_KEY;
-const s3envBucket = process.env.S3_ENV_BUCKET;
-
-
-// Create a DocumentClient that represents the query to add an item
 const dynamodb = require('aws-sdk/clients/dynamodb');
 const docClient = new dynamodb.DocumentClient();
 

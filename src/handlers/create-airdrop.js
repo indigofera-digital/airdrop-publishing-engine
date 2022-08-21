@@ -1,21 +1,13 @@
-const tableName = process.env.DYNAMODB_TABLE;
-const systemWalletAddress = process.env.SYSTEM_WALLET_ADDRESS;
-const systemWalletPrivate = process.env.SYSTEM_WALLET_PRIVATE;
-const chainApiUrl = process.env.CHAIN_API_URL;
-const chainApiKey = process.env.CHAIN_API_KEY;
-const s3envBucket = process.env.S3_ENV_BUCKET;
-
-
 const { v4: uuidv4 } = require('uuid');
-
-// Create a DocumentClient that represents the query to add an item
 const dynamodb = require('aws-sdk/clients/dynamodb');
-const deployContract = require('../utils/contract-utils').deploy;
 const docClient = new dynamodb.DocumentClient();
+const settings = require('../settings');
+const Web3 = require('web3');
+const tableName = process.env.DYNAMODB_TABLE;
+const fs = require('fs-extra');
 
-/**
- * A simple example includes a HTTP get method to get all items from a DynamoDB table.
- */
+// const deployContract = require('../utils/contract-utils').deploy;
+
 exports.createAirdropHandler = async (event) => {
     if (event.httpMethod !== 'POST') {
         throw new Error(`createAirdrop only accept POST method, you tried: ${event.httpMethod}`);
@@ -39,16 +31,38 @@ exports.createAirdropHandler = async (event) => {
     airdrop['id'] = airdropId;
 
     // Deploy Airdrop Smart Contract
-    const contract = await deployContract(airdrop, chainApiUrl, systemWalletPrivate);
-    airdrop['abi'] = contract.abi;
-    airdrop['contractAddress'] = contract.contractAddress;
+    // const contract = await deployContract(airdrop, chainApiUrl, systemWalletPrivate);
+    // airdrop['abi'] = contract.abi;
+    // airdrop['contractAddress'] = contract.contractAddress;
+
+    console.log(settings);
+
+    const web3 = new Web3(settings.chainRPC);
+    const contractJSONInterface = await fs.readJson(settings.quizFactoryJSONPath);
+    const factoryContract = new web3.eth.Contract(contractJSONInterface.abi, settings.quizFactoryAddress);
+
+    const addAirdropTx = {
+        // from: from,
+        to: settings.quizFactoryAddress,
+        data: factoryContract.methods.createQuiz(airdropId).encodeABI(),
+        // gas: await web3.eth.getGasPrice()
+        gas: '8000000'
+    
+    };
+
+    const transaction = await web3.eth.accounts.signTransaction(addAirdropTx, settings.walletPrivate);
+    const transactionResponse = await web3.eth.sendSignedTransaction(transaction.rawTransaction);
+
+    const address = await factoryContract.methods.quizzes(airdropId).call();
+    console.log("Created Airdrop: " + airdropId + " at address: " + address);
+
+    airdrop['address'] = address;
 
     // Add Airdrop to DynamoDB
     var params = {
         TableName : tableName,
         Item: airdrop
     };
-
     const result = await docClient.put(params).promise();
     console.info('Dynamo put result :', result);
 

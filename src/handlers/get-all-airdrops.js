@@ -1,6 +1,4 @@
 const tableName = process.env.DYNAMODB_TABLE;
-
-// Create a DocumentClient that represents the query to add an item
 const dynamodb = require('aws-sdk/clients/dynamodb');
 const docClient = new dynamodb.DocumentClient();
 
