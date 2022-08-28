@@ -13,12 +13,20 @@ Globals:
     Environment:
       Variables:
         SYSTEM_WALLET_PRIVATE: e463ca2bdc9b315d8e766335434401840010997cc1beeebc4817d5a776cfa28a
+        # SYSTEM_WALLET_PRIVATE: d741c158a51bff1cba856d70b76ad164fe263c4aca13096860ff36bb643c4e64
         CHAIN_API_URL: https://api.avax-test.network/ext/bc/C/rpc
         # CHAIN_API_KEY: jVVK_c3FjZ18Z25TmYzHkokiyD1ngj38
         S3_ENV_BUCKET: s3-test-env-bucket
         # DYNAMODB_TABLE: !Ref GamifiedAirdrops
         QUIZ_FACTORY_CONTRACT: "./contracts/QuizFactory.json"
         QUIZ_FACTORY_ADDRESS: "0x11daa938674d063e3ff4727803cbbc303c74f658"
+
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
+      # AllowCredentials: true  Uncomment only if you choose a specific origin instead of the * wildcard.
 
 Resources:
   # This is a Lambda function config associated with the source code: get-all-airdrops.js
@@ -112,6 +120,29 @@ Resources:
           Type: Api
           Properties:
             Path: /send-reward
+            Method: POST
+            
+  checkAnswer:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/check-answer.checkAnswerHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GamifiedAirdrops
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref GamifiedAirdrops
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /check-answer
             Method: POST
 
   GamifiedAirdrops:

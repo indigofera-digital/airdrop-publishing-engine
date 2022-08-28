@@ -6,6 +6,7 @@
     "dependencies": {
         "aws-sdk": "^2.799.0",
         "handlebars": "^4.7.7",
+        "lodash": "^4.17.21",
         "solc": "^0.8.16",
         "uuid": "^8.3.2",
         "web3": "^1.7.5"

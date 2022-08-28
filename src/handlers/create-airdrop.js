@@ -51,8 +51,10 @@ exports.createAirdropHandler = async (event) => {
     };
 
     const transaction = await web3.eth.accounts.signTransaction(addAirdropTx, settings.walletPrivate);
-    const transactionResponse = await web3.eth.sendSignedTransaction(transaction.rawTransaction);
+    const transactionReceipt = await web3.eth.sendSignedTransaction(transaction.rawTransaction);
+    console.log("Create Airdrop Transaction Receipt: ", transactionReceipt);
 
+    // wait transaction and get address
     const address = await factoryContract.methods.quizzes(airdropId).call();
     console.log("Created Airdrop: " + airdropId + " at address: " + address);
 
@@ -68,6 +70,11 @@ exports.createAirdropHandler = async (event) => {
 
     const response = {
         statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Headers" : "Content-Type",
+            "Access-Control-Allow-Origin": "*", // Allow from anywhere 
+            "Access-Control-Allow-Methods": "POST" // Allow only POST request 
+        },
         body: JSON.stringify(airdrop)
     };
 

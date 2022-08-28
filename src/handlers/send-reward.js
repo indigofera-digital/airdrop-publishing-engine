@@ -8,7 +8,7 @@ const fs = require('fs-extra');
 
 exports.sendRewardHandler = async (event) => {
     if (event.httpMethod !== 'POST') {
-        throw new Error(`createAirdrop only accept POST method, you tried: ${event.httpMethod}`);
+        throw new Error(`sendReward only accept POST method, you tried: ${event.httpMethod}`);
     }
     // All log statements are written to CloudWatch
     console.info('received:', event);
@@ -32,11 +32,17 @@ exports.sendRewardHandler = async (event) => {
 
     const transaction = await web3.eth.accounts.signTransaction(sendRewardTx, settings.walletPrivate);
     const transactionResponse = await web3.eth.sendSignedTransaction(transaction.rawTransaction);
+    // check transaction if failed try catch error log
 
     console.log("Sending Airdrop reward: " + payload.id + " to: " + payload.receiver + " with amount: " + payload.amount);
 
     const response = {
         statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Headers" : "Content-Type",
+            "Access-Control-Allow-Origin": "*", // Allow from anywhere 
+            "Access-Control-Allow-Methods": "POST" // Allow only POST request 
+        },
         body: JSON.stringify(
             {
                 transactionHash: transactionResponse.transactionHash,
