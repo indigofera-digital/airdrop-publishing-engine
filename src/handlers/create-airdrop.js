@@ -5,6 +5,7 @@ const settings = require('../settings');
 const Web3 = require('web3');
 const tableName = process.env.DYNAMODB_TABLE;
 const fs = require('fs-extra');
+const { publishCampaign } = require("./services/campaign-publishing.service.js")
 
 // const deployContract = require('../utils/contract-utils').deploy;
 
@@ -47,7 +48,7 @@ exports.createAirdropHandler = async (event) => {
         data: factoryContract.methods.createQuiz(airdropId).encodeABI(),
         // gas: await web3.eth.getGasPrice()
         gas: '8000000'
-    
+
     };
 
     const transaction = await web3.eth.accounts.signTransaction(addAirdropTx, settings.walletPrivate);
@@ -62,11 +63,19 @@ exports.createAirdropHandler = async (event) => {
 
     // Add Airdrop to DynamoDB
     var params = {
-        TableName : tableName,
+        TableName: tableName,
         Item: airdrop
     };
     const result = await docClient.put(params).promise();
     console.info('Dynamo put result :', result);
+
+    // Publish quiz game
+    try {
+        await publishCampaign(airdrop.id, airdrop.questions)
+    } catch (err) {
+        console.log("Quiz not published")
+    }
+
 
     const response = {
         statusCode: 200,
