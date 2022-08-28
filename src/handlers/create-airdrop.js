@@ -5,7 +5,7 @@ const settings = require('../settings');
 const Web3 = require('web3');
 const tableName = process.env.DYNAMODB_TABLE;
 const fs = require('fs-extra');
-const { publishCampaign } = require("./services/campaign-publishing.service.js")
+const { publishCampaign } = require("../services/campaign-publishing.service.js")
 
 // const deployContract = require('../utils/contract-utils').deploy;
 
@@ -72,6 +72,7 @@ exports.createAirdropHandler = async (event) => {
     // Publish quiz game
     try {
         await publishCampaign(airdrop.id, airdrop.questions)
+        airdrop['campaignUrl'] = 'http://airdrop-campaigns.s3-website-eu-west-1.amazonaws.com/${airdrop.id}/'
     } catch (err) {
         console.log("Quiz not published")
     }
