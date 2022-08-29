@@ -89,6 +89,8 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: airdrop-campaigns # bucket name without arn
+        - S3FullAccessPolicy:
+            BucketName: airdrop-campaign-template
         - DynamoDBCrudPolicy:
             TableName: !Ref GamifiedAirdrops
       Environment:
