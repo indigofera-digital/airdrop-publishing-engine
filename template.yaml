@@ -87,6 +87,8 @@ Resources:
       Timeout: 100
       Description:
       Policies:
+        - S3FullAccessPolicy:
+            BucketName: airdrop-campaigns # bucket name without arn
         - DynamoDBCrudPolicy:
             TableName: !Ref GamifiedAirdrops
       Environment:
