@@ -83,7 +83,7 @@ Resources:
       Runtime: nodejs16.x
       Architectures:
         - x86_64
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 100
       Description:
       Policies:

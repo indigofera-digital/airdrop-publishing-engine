@@ -61,6 +61,16 @@ exports.createAirdropHandler = async (event) => {
 
     airdrop['address'] = address;
 
+    // Publish quiz game
+    console.log("Publishing quiz game: " + airdropId);
+    try {
+        await publishCampaign(airdrop.id, airdrop.questions)
+        airdrop['campaignUrl'] = `http://airdrop-campaigns.s3-website-eu-west-1.amazonaws.com/${airdrop.id}/`
+    } catch (err) {
+        console.log("Quiz not published")
+    }
+    console.log("Log after publishing to s3. Putting to DynamoDB");
+
     // Add Airdrop to DynamoDB
     var params = {
         TableName: tableName,
@@ -68,15 +78,6 @@ exports.createAirdropHandler = async (event) => {
     };
     const result = await docClient.put(params).promise();
     console.info('Dynamo put result :', result);
-
-    // Publish quiz game
-    try {
-        await publishCampaign(airdrop.id, airdrop.questions)
-        airdrop['campaignUrl'] = `http://airdrop-campaigns.s3-website-eu-west-1.amazonaws.com/${airdrop.id}/`
-    } catch (err) {
-        console.log("Quiz not published")
-    }
-
 
     const response = {
         statusCode: 200,
